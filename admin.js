@@ -1,0 +1,285 @@
+const SUPABASE_URL = "https://ysufdooypagdusicjrfv.supabase.co";
+const SUPABASE_KEY = "sb_publishable_gIRNdakUJshJhb3UGzu4sg_e0GLMcsO";
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+const $ = id => document.getElementById(id);
+
+function showStatus(message, isError = false) {
+    $("status").textContent = message;
+    $("status").style.color = isError ? "#c0392b" : "#16834a";
+}
+
+function showDashboard() {
+    $("loginSection").style.display = "none";
+    $("dashboard").style.display = "block";
+    loadAdminProducts();
+}
+
+function showLogin() {
+    $("loginSection").style.display = "block";
+    $("dashboard").style.display = "none";
+}
+
+// Verify admin access from the admins table
+async function verifyAdmin() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+
+    if (!user) {
+        showLogin();
+        return;
+    }
+
+    const { data, error } = await supabaseClient
+        .from("admins")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+    if (error || !data) {
+        await supabaseClient.auth.signOut();
+        showLogin();
+        alert("This account is not authorized as an admin.");
+        return;
+    }
+
+    showDashboard();
+}
+
+// Login
+$("loginForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const email = $("adminEmail").value.trim();
+    const password = $("adminPassword").value;
+
+    const { error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    if (error) {
+        alert("Login failed: " + error.message);
+        return;
+    }
+
+    await verifyAdmin();
+});
+
+// Logout
+$("logoutBtn").addEventListener("click", async () => {
+    await supabaseClient.auth.signOut();
+    showLogin();
+});
+
+// Load products
+async function loadAdminProducts() {
+    $("adminProductList").textContent = "Loading...";
+
+    const { data, error } = await supabaseClient
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        $("adminProductList").textContent = error.message;
+        return;
+    }
+
+    $("adminProductList").innerHTML = "";
+
+    if (!data.length) {
+        $("adminProductList").textContent = "No products found.";
+        return;
+    }
+
+    data.forEach(product => {
+        const row = document.createElement("div");
+        row.className = "admin-product";
+
+        const info = document.createElement("div");
+        info.style.display = "flex";
+        info.style.alignItems = "center";
+        info.style.gap = "12px";
+
+        const img = document.createElement("img");
+        img.src = product.image_url ||
+            "https://placehold.co/100x100?text=Product";
+        img.alt = product.name;
+
+        const details = document.createElement("div");
+        const name = document.createElement("strong");
+        name.textContent = product.name;
+
+        const price = document.createElement("p");
+        price.textContent = "₹" + product.price;
+
+        details.append(name, price);
+        info.append(img, details);
+
+        const actions = document.createElement("div");
+        actions.className = "admin-actions";
+
+        const edit = document.createElement("button");
+        edit.className = "admin-btn";
+        edit.textContent = "Edit";
+        edit.onclick = () => editProduct(product);
+
+        const remove = document.createElement("button");
+        remove.className = "admin-btn danger";
+        remove.textContent = "Delete";
+        remove.onclick = () => deleteProduct(product);
+
+        actions.append(edit, remove);
+        row.append(info, actions);
+        $("adminProductList").append(row);
+    });
+}
+
+// Upload image to Supabase Storage
+async function uploadImage(file) {
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const filePath = `${Date.now()}-${safeName}`;
+
+    const { error } = await supabaseClient.storage
+        .from("product-images")
+        .upload(filePath, file, {
+            upsert: false
+        });
+
+    if (error) throw error;
+
+    const { data } = supabaseClient.storage
+        .from("product-images")
+        .getPublicUrl(filePath);
+
+    return data.publicUrl;
+}
+
+// Add or update product
+$("productForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const saveButton = $("saveBtn");
+    saveButton.disabled = true;
+    showStatus("Saving product...");
+
+    try {
+        const id = $("productId").value;
+        const file = $("productImage").files[0];
+
+        let imageUrl = $("imageNote").dataset.currentImage || "";
+
+        if (file) {
+            imageUrl = await uploadImage(file);
+        }
+
+        const product = {
+            name: $("productName").value.trim(),
+            price: Number($("productPrice").value),
+            category: $("productCategory").value.trim(),
+            description: $("productDescription").value.trim(),
+            product_type: $("productType").value,
+            affiliate_url: $("affiliateLink").value.trim() || null,
+            image_url: imageUrl || null,
+            is_active: true
+        };
+
+        if (product.product_type === "affiliate" &&
+            !product.affiliate_url) {
+            throw new Error("Please enter the affiliate link.");
+        }
+
+        let result;
+
+        if (id) {
+            result = await supabaseClient
+                .from("products")
+                .update(product)
+                .eq("id", id);
+        } else {
+            result = await supabaseClient
+                .from("products")
+                .insert(product);
+        }
+
+        if (result.error) throw result.error;
+
+        showStatus(id ? "Product updated successfully!" :
+            "Product added successfully!");
+
+        resetForm();
+        await loadAdminProducts();
+
+    } catch (error) {
+        showStatus(error.message, true);
+    } finally {
+        saveButton.disabled = false;
+    }
+});
+
+// Edit product
+function editProduct(product) {
+    $("productId").value = product.id;
+    $("productName").value = product.name;
+    $("productPrice").value = product.price;
+    $("productCategory").value = product.category || "";
+    $("productDescription").value = product.description || "";
+    $("productType").value = product.product_type;
+    $("affiliateLink").value = product.affiliate_url || "";
+
+    $("productImage").value = "";
+    $("imageNote").dataset.currentImage = product.image_url || "";
+    $("imageNote").textContent = product.image_url
+        ? "Current image will be kept unless a new image is selected."
+        : "No current image.";
+
+    $("formTitle").textContent = "Edit Product";
+    $("saveBtn").textContent = "Update Product";
+    $("cancelEditBtn").style.display = "inline-block";
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// Reset form
+function resetForm() {
+    $("productForm").reset();
+    $("productId").value = "";
+    $("imageNote").dataset.currentImage = "";
+    $("imageNote").textContent = "Choose an image from your device.";
+    $("formTitle").textContent = "Add New Product";
+    $("saveBtn").textContent = "Add Product";
+    $("cancelEditBtn").style.display = "none";
+}
+
+$("cancelEditBtn").addEventListener("click", resetForm);
+
+// Delete product
+async function deleteProduct(product) {
+    if (!confirm(`Delete "${product.name}"?`)) return;
+
+    const { error } = await supabaseClient
+        .from("products")
+        .delete()
+        .eq("id", product.id);
+
+    if (error) {
+        alert("Delete failed: " + error.message);
+        return;
+    }
+
+    alert("Product deleted successfully.");
+    await loadAdminProducts();
+}
+
+// Check existing login
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_OUT" || !session) {
+        showLogin();
+    }
+});
+
+verifyAdmin();
