@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#16834a">
+
     <title>MIVQO - More Than Just Shopping</title>
+
     <link rel="stylesheet" href="style.css">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
     <style>
         .logo {
@@ -44,17 +50,37 @@
             color: #777;
             white-space: nowrap;
         }
+
+        footer {
+            text-align: center;
+        }
+
+        .footer-logo {
+            display: block;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 800;
+            color: #16834a;
+            text-decoration: none;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
+
 <body>
 
+    <!-- HEADER -->
     <header class="navbar">
+
         <a href="#home" class="logo">
+
             <img src="images/logo.png.jpeg" alt="MIVQO Logo">
+
             <span class="logo-text">
                 <strong>MIVQO</strong>
                 <small>MORE THAN JUST SHOPPING</small>
             </span>
+
         </a>
 
         <nav>
@@ -64,69 +90,127 @@
         </nav>
 
         <button class="menu-btn" onclick="toggleMenu()">☰</button>
+
     </header>
 
+
+    <!-- MAIN CONTENT -->
     <main>
+
+        <!-- HERO SECTION -->
         <section class="hero" id="home">
+
             <div class="hero-content">
+
                 <span class="tag">WELCOME TO MIVQO</span>
-                <h1>Discover Products.<br>
+
+                <h1>
+                    Discover Products.<br>
                     <span>Find Better Deals.</span>
                 </h1>
-                <p>Explore handpicked products and amazing deals, all in one place.</p>
-                <a href="#products" class="hero-btn">Explore Products →</a>
+
+                <p>
+                    Explore handpicked products and amazing deals,
+                    all in one place.
+                </p>
+
+                <a href="#products" class="hero-btn">
+                    Explore Products →
+                </a>
+
             </div>
+
         </section>
 
+
+        <!-- PRODUCTS SECTION -->
         <section class="products-section" id="products">
+
             <div class="section-heading">
+
                 <div>
                     <span class="tag">OUR COLLECTION</span>
+
                     <h2>Latest Products</h2>
-                    <p>Explore our latest handpicked products.</p>
+
+                    <p>
+                        Explore our latest handpicked products.
+                    </p>
                 </div>
+
             </div>
 
+
+            <!-- SEARCH -->
             <div class="search-box">
-                <input type="text" id="searchInput"
+
+                <input
+                    type="text"
+                    id="searchInput"
                     placeholder="Search products..."
-                    oninput="searchProducts()">
+                    oninput="searchProducts()"
+                >
+
             </div>
 
+
+            <!-- PRODUCT GRID -->
             <div class="product-grid" id="productGrid">
+
                 <p>Loading products...</p>
+
             </div>
 
+
+            <!-- VIEW ALL -->
             <div class="view-all">
-                <button onclick="showAllProducts()">View All Products</button>
+
+                <button onclick="showAllProducts()">
+                    View All Products
+                </button>
+
             </div>
+
         </section>
 
+
+        <!-- ABOUT SECTION -->
         <section class="about-section" id="about">
+
             <h2>Why MIVQO?</h2>
-            <p>Discover useful products, exciting deals and great finds.</p>
+
+            <p>
+                Discover useful products, exciting deals and great finds.
+            </p>
+
         </section>
+
     </main>
 
+
+    <!-- FOOTER -->
     <footer>
-    <a href="#home" class="footer-logo">MIVQO</a>
-    <p>Discover • Explore • Shop</p>
-    <p class="copyright">© 2026 MIVQO. All rights reserved.</p>
-    <p class="disclosure">Some product links may be affiliate links.</p>
-</footer>
 
-<style>
-    footer {
-        text-align: center;
-    }
+        <a href="#home" class="footer-logo">MIVQO</a>
 
-    .footer-logo {
-        display: block;
-        text-align: center;
-        font-size: 24px;
-        font-weight: 800;
-        color: #16834a;
-        text-decoration: none;
-        margin-bottom: 10px;
-    }
-</style>
+        <p>Discover • Explore • Shop</p>
+
+        <p class="copyright">
+            © 2026 MIVQO. All rights reserved.
+        </p>
+
+        <p class="disclosure">
+            Some product links may be affiliate links.
+        </p>
+
+    </footer>
+
+
+    <!-- SUPABASE LIBRARY -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- WEBSITE JAVASCRIPT -->
+    <script src="script.js"></script>
+
+</body>
+</html>
