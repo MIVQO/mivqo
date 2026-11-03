@@ -1,6 +1,11 @@
 const SUPABASE_URL = "https://ysufdooypagdusicjrfv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gIRNdakUJshJhb3UGzu4sg_e0GLMcsO";
 
+// Initialize Supabase
+if (!window.supabase) {
+    throw new Error("Supabase library not loaded. Check index.html.");
+}
+
 const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
@@ -12,38 +17,53 @@ const productGrid = document.getElementById("productGrid");
 
 // Load products from Supabase
 async function loadProducts() {
-    productGrid.innerHTML = "<p>Loading products...</p>";
-
-    const { data, error } = await supabaseClient
-        .from("products")
-        .select("*")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
-
-    if (error) {
-        console.error("Supabase Error:", error);
-        productGrid.innerHTML = "<p>Unable to load products. Please try again.</p>";
+    if (!productGrid) {
+        console.error("productGrid element not found in index.html");
         return;
     }
 
-    products = data.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        image: item.image_url || "https://placehold.co/600x450/f1f8f2/16834a?text=MIVQO",
-        description: item.description || "",
-        type: item.product_type,
-        link: item.affiliate_url || "",
-        category: item.category || ""
-    }));
+    productGrid.innerHTML = "<p>Loading products...</p>";
 
-    renderProducts(products);
+    try {
+        const { data, error } = await supabaseClient
+            .from("products")
+            .select("*")
+            .eq("is_active", true)
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            throw error;
+        }
+
+        products = (data || []).map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            image: item.image_url ||
+                "https://placehold.co/600x450/f1f8f2/16834a?text=MIVQO",
+            description: item.description || "",
+            type: item.product_type,
+            link: item.affiliate_url || "",
+            category: item.category || ""
+        }));
+
+        renderProducts(products);
+
+    } catch (error) {
+        console.error("Product Loading Error:", error);
+
+        productGrid.innerHTML =
+            "<p>Unable to load products. Please refresh and try again.</p>";
+    }
 }
 
+// Display products
 function renderProducts(list) {
+    if (!productGrid) return;
+
     productGrid.innerHTML = "";
 
-    if (list.length === 0) {
+    if (!list || list.length === 0) {
         productGrid.innerHTML = "<p>No products available yet.</p>";
         return;
     }
@@ -54,13 +74,16 @@ function renderProducts(list) {
 
         const img = document.createElement("img");
         img.src = product.image;
-        img.alt = product.name;
+        img.alt = product.name || "MIVQO Product";
+        img.onerror = () => {
+            img.src = "https://placehold.co/600x450/f1f8f2/16834a?text=MIVQO";
+        };
 
         const info = document.createElement("div");
         info.className = "product-info";
 
         const name = document.createElement("h3");
-        name.textContent = product.name;
+        name.textContent = product.name || "Product";
 
         const price = document.createElement("div");
         price.className = "product-price";
@@ -72,27 +95,36 @@ function renderProducts(list) {
 
         info.append(name, price, button);
         card.append(img, info);
+
         productGrid.appendChild(card);
     });
 }
 
+// Search products
 function searchProducts() {
-    const query = document.getElementById("searchInput").value.toLowerCase();
+    const searchInput = document.getElementById("searchInput");
+
+    if (!searchInput) return;
+
+    const query = searchInput.value.toLowerCase().trim();
 
     const filtered = products.filter(product =>
-        product.name.toLowerCase().includes(query) ||
-        product.category.toLowerCase().includes(query)
+        (product.name || "").toLowerCase().includes(query) ||
+        (product.category || "").toLowerCase().includes(query)
     );
 
     renderProducts(filtered);
 }
 
+// Show all products
 function showAllProducts() {
     renderProducts(products);
 }
 
+// Product details
 function showProductDetails(id) {
     const product = products.find(item => item.id === id);
+
     if (!product) return;
 
     const message =
@@ -105,23 +137,36 @@ function showProductDetails(id) {
         : product.link;
 
     const details = document.createElement("div");
+
     details.style.cssText = `
-        position:fixed; inset:0; background:#0009; z-index:999;
-        display:flex; align-items:center; justify-content:center;
+        position:fixed;
+        inset:0;
+        background:#0009;
+        z-index:999;
+        display:flex;
+        align-items:center;
+        justify-content:center;
         padding:15px;
     `;
 
     const panel = document.createElement("div");
+
     panel.style.cssText = `
-        background:white; padding:25px; border-radius:14px;
-        width:100%; max-width:450px; max-height:90vh;
-        overflow-y:auto; position:relative;
+        background:white;
+        padding:25px;
+        border-radius:14px;
+        width:100%;
+        max-width:450px;
+        max-height:90vh;
+        overflow-y:auto;
+        position:relative;
     `;
 
     const img = document.createElement("img");
     img.src = product.image;
     img.alt = product.name;
-    img.style.cssText = "width:100%;height:210px;object-fit:contain;";
+    img.style.cssText =
+        "width:100%;height:210px;object-fit:contain;";
 
     const title = document.createElement("h2");
     title.textContent = product.name;
@@ -136,49 +181,74 @@ function showProductDetails(id) {
 
     const buy = document.createElement("button");
     buy.textContent = "Buy Now →";
+
     buy.style.cssText = `
-        width:100%;padding:14px;background:#16834a;
-        color:white;border:0;border-radius:7px;
-        font-weight:bold;cursor:pointer;
+        width:100%;
+        padding:14px;
+        background:#16834a;
+        color:white;
+        border:0;
+        border-radius:7px;
+        font-weight:bold;
+        cursor:pointer;
     `;
 
     buy.onclick = () => {
         if (product.type === "own") {
-            if (action.includes("XXXXXXXXXX")) {
-                alert("WhatsApp number is not configured yet.");
-                return;
-            }
             window.open(action, "_blank");
         } else {
             if (!product.link) {
                 alert("Affiliate link is not available.");
                 return;
             }
-            window.open(product.link, "_blank", "noopener,noreferrer");
+
+            window.open(
+                product.link,
+                "_blank",
+                "noopener,noreferrer"
+            );
         }
     };
 
     const close = document.createElement("button");
     close.textContent = "✕";
+
     close.style.cssText = `
-        position:absolute;right:15px;top:15px;
-        border:0;background:white;font-size:22px;cursor:pointer;
+        position:absolute;
+        right:15px;
+        top:15px;
+        border:0;
+        background:white;
+        font-size:22px;
+        cursor:pointer;
     `;
+
     close.onclick = () => details.remove();
 
     panel.append(close, img, title, price, description, buy);
     details.appendChild(panel);
 
     details.onclick = event => {
-        if (event.target === details) details.remove();
+        if (event.target === details) {
+            details.remove();
+        }
     };
 
     document.body.appendChild(details);
 }
 
+// Mobile navigation menu
 function toggleMenu() {
-    document.querySelector("nav").classList.toggle("active");
+    const nav = document.querySelector("nav");
+
+    if (nav) {
+        nav.classList.toggle("active");
+    }
 }
 
-// Start website
-loadProducts();
+// Start website after HTML loads
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadProducts);
+} else {
+    loadProducts();
+}
