@@ -327,14 +327,14 @@ footer p {
     }
 }
 .logo img {
-    height: 20px;
+    height: 80px;
     width: auto;
     object-fit: contain;
     display: block;
 }
 @media (max-width: 768px) {
     .logo img {
-        height: 16px;
+        height: 55px;
         width: auto;
     }
 }
