@@ -332,3 +332,9 @@ footer p {
     object-fit: contain;
     display: block;
 }
+@media (max-width: 768px) {
+    .logo img {
+        height: 16px;
+        width: auto;
+    }
+}
