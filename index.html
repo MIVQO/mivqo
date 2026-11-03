@@ -7,9 +7,9 @@
     <meta name="theme-color" content="#16834a">
 
     <title>MIVQO - More Than Just Shopping</title>
+    <meta name="description" content="Explore handpicked products and amazing deals at MIVQO.">
 
     <link rel="stylesheet" href="style.css">
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -73,23 +73,22 @@
     <header class="navbar">
 
         <a href="#home" class="logo">
-
             <img src="images/logo.png.jpeg" alt="MIVQO Logo">
 
             <span class="logo-text">
                 <strong>MIVQO</strong>
                 <small>MORE THAN JUST SHOPPING</small>
             </span>
-
         </a>
 
         <nav>
             <a href="#home">Home</a>
             <a href="#products">Products</a>
             <a href="#about">About</a>
+            <a href="#contact">Contact</a>
         </nav>
 
-        <button class="menu-btn" onclick="toggleMenu()">☰</button>
+        <button class="menu-btn" onclick="toggleMenu()" aria-label="Toggle menu">☰</button>
 
     </header>
 
@@ -154,6 +153,21 @@
             </div>
 
 
+            <!-- CATEGORY FILTERS -->
+            <div class="category-section">
+
+                <h3>Explore Categories</h3>
+
+                <div class="category-filters" id="categoryFilters">
+                    <button class="category-btn active" data-category="all"
+                        onclick="filterCategory('all')">
+                        All Products
+                    </button>
+                </div>
+
+            </div>
+
+
             <!-- PRODUCT GRID -->
             <div class="product-grid" id="productGrid">
 
@@ -181,7 +195,27 @@
 
             <p>
                 Discover useful products, exciting deals and great finds.
+                MIVQO makes exploring products simple and convenient.
             </p>
+
+        </section>
+
+
+        <!-- CONTACT SECTION -->
+        <section class="contact-section" id="contact">
+
+            <span class="tag">GET IN TOUCH</span>
+
+            <h2>Contact Us</h2>
+
+            <p>
+                Have a question about a product or an order?
+                Feel free to contact us.
+            </p>
+
+            <a href="mailto:shopmivqo@gmail.com" class="contact-email">
+                shopmivqo@gmail.com
+            </a>
 
         </section>
 
@@ -194,6 +228,12 @@
         <a href="#home" class="footer-logo">MIVQO</a>
 
         <p>Discover • Explore • Shop</p>
+
+        <p>
+            <a href="mailto:shopmivqo@gmail.com">
+                shopmivqo@gmail.com
+            </a>
+        </p>
 
         <p class="copyright">
             © 2026 MIVQO. All rights reserved.

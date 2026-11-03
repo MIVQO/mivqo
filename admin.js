@@ -8,15 +8,24 @@ const supabaseClient = window.supabase.createClient(
 
 const $ = id => document.getElementById(id);
 
+// STATUS
 function showStatus(message, isError = false) {
     $("status").textContent = message;
     $("status").style.color = isError ? "#c0392b" : "#16834a";
 }
 
-function showDashboard() {
+function showCategoryStatus(message, isError = false) {
+    $("categoryStatus").textContent = message;
+    $("categoryStatus").style.color = isError ? "#c0392b" : "#16834a";
+}
+
+// DASHBOARD
+async function showDashboard() {
     $("loginSection").style.display = "none";
     $("dashboard").style.display = "block";
-    loadAdminProducts();
+
+    await loadCategories();
+    await loadAdminProducts();
 }
 
 function showLogin() {
@@ -24,7 +33,7 @@ function showLogin() {
     $("dashboard").style.display = "none";
 }
 
-// Verify admin access from the admins table
+// VERIFY ADMIN
 async function verifyAdmin() {
     const { data: { user } } = await supabaseClient.auth.getUser();
 
@@ -46,10 +55,10 @@ async function verifyAdmin() {
         return;
     }
 
-    showDashboard();
+    await showDashboard();
 }
 
-// Login
+// LOGIN
 $("loginForm").addEventListener("submit", async event => {
     event.preventDefault();
 
@@ -69,13 +78,144 @@ $("loginForm").addEventListener("submit", async event => {
     await verifyAdmin();
 });
 
-// Logout
+// LOGOUT
 $("logoutBtn").addEventListener("click", async () => {
     await supabaseClient.auth.signOut();
     showLogin();
 });
 
-// Load products
+// CATEGORY MANAGEMENT
+async function loadCategories() {
+    const categoryList = $("adminCategoryList");
+    const categorySelect = $("productCategory");
+
+    categoryList.textContent = "Loading categories...";
+
+    const { data, error } = await supabaseClient
+        .from("categories")
+        .select("*")
+        .order("name", { ascending: true });
+
+    if (error) {
+        categoryList.textContent =
+            "Could not load categories: " + error.message;
+        return;
+    }
+
+    categoryList.innerHTML = "";
+
+    categorySelect.innerHTML =
+        '<option value="">Select Category</option>';
+
+    if (!data || data.length === 0) {
+        categoryList.textContent = "No categories added yet.";
+        return;
+    }
+
+    data.forEach(category => {
+        // Product dropdown
+        const option = document.createElement("option");
+        option.value = category.name;
+        option.textContent = category.name;
+        categorySelect.appendChild(option);
+
+        // Admin category list
+        const row = document.createElement("div");
+        row.className = "admin-product";
+
+        const name = document.createElement("strong");
+        name.textContent = category.name;
+
+        const remove = document.createElement("button");
+        remove.className = "admin-btn danger";
+        remove.textContent = "Delete";
+
+        remove.onclick = () => deleteCategory(category);
+
+        row.append(name, remove);
+        categoryList.appendChild(row);
+    });
+}
+
+// ADD CATEGORY
+$("categoryForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const name = $("newCategoryName").value.trim();
+
+    if (!name) {
+        showCategoryStatus("Please enter a category name.", true);
+        return;
+    }
+
+    const { data: existing, error: checkError } = await supabaseClient
+        .from("categories")
+        .select("id")
+        .ilike("name", name);
+
+    if (checkError) {
+        showCategoryStatus(checkError.message, true);
+        return;
+    }
+
+    if (existing && existing.length > 0) {
+        showCategoryStatus("This category already exists.", true);
+        return;
+    }
+
+    const { error } = await supabaseClient
+        .from("categories")
+        .insert({ name });
+
+    if (error) {
+        showCategoryStatus(error.message, true);
+        return;
+    }
+
+    $("newCategoryName").value = "";
+    showCategoryStatus("Category added successfully!");
+
+    await loadCategories();
+});
+
+// DELETE CATEGORY
+async function deleteCategory(category) {
+    const { data: products, error: checkError } = await supabaseClient
+        .from("products")
+        .select("id")
+        .eq("category", category.name)
+        .limit(1);
+
+    if (checkError) {
+        alert("Could not check products: " + checkError.message);
+        return;
+    }
+
+    if (products && products.length > 0) {
+        alert(
+            "This category is being used by a product. " +
+            "Change that product's category before deleting this category."
+        );
+        return;
+    }
+
+    if (!confirm(`Delete category "${category.name}"?`)) return;
+
+    const { error } = await supabaseClient
+        .from("categories")
+        .delete()
+        .eq("id", category.id);
+
+    if (error) {
+        alert("Category delete failed: " + error.message);
+        return;
+    }
+
+    showCategoryStatus("Category deleted successfully!");
+    await loadCategories();
+}
+
+// LOAD PRODUCTS
 async function loadAdminProducts() {
     $("adminProductList").textContent = "Loading...";
 
@@ -111,6 +251,7 @@ async function loadAdminProducts() {
         img.alt = product.name;
 
         const details = document.createElement("div");
+
         const name = document.createElement("strong");
         name.textContent = product.name;
 
@@ -135,11 +276,12 @@ async function loadAdminProducts() {
 
         actions.append(edit, remove);
         row.append(info, actions);
+
         $("adminProductList").append(row);
     });
 }
 
-// Upload image to Supabase Storage
+// IMAGE UPLOAD
 async function uploadImage(file) {
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const filePath = `${Date.now()}-${safeName}`;
@@ -159,7 +301,7 @@ async function uploadImage(file) {
     return data.publicUrl;
 }
 
-// Add or update product
+// ADD / UPDATE PRODUCT
 $("productForm").addEventListener("submit", async event => {
     event.preventDefault();
 
@@ -180,13 +322,17 @@ $("productForm").addEventListener("submit", async event => {
         const product = {
             name: $("productName").value.trim(),
             price: Number($("productPrice").value),
-            category: $("productCategory").value.trim(),
+            category: $("productCategory").value,
             description: $("productDescription").value.trim(),
             product_type: $("productType").value,
             affiliate_url: $("affiliateLink").value.trim() || null,
             image_url: imageUrl || null,
             is_active: true
         };
+
+        if (!product.category) {
+            throw new Error("Please select a category.");
+        }
 
         if (product.product_type === "affiliate" &&
             !product.affiliate_url) {
@@ -208,8 +354,10 @@ $("productForm").addEventListener("submit", async event => {
 
         if (result.error) throw result.error;
 
-        showStatus(id ? "Product updated successfully!" :
-            "Product added successfully!");
+        showStatus(id
+            ? "Product updated successfully!"
+            : "Product added successfully!"
+        );
 
         resetForm();
         await loadAdminProducts();
@@ -221,7 +369,7 @@ $("productForm").addEventListener("submit", async event => {
     }
 });
 
-// Edit product
+// EDIT PRODUCT
 function editProduct(product) {
     $("productId").value = product.id;
     $("productName").value = product.name;
@@ -233,6 +381,7 @@ function editProduct(product) {
 
     $("productImage").value = "";
     $("imageNote").dataset.currentImage = product.image_url || "";
+
     $("imageNote").textContent = product.image_url
         ? "Current image will be kept unless a new image is selected."
         : "No current image.";
@@ -244,12 +393,13 @@ function editProduct(product) {
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// Reset form
+// RESET FORM
 function resetForm() {
     $("productForm").reset();
     $("productId").value = "";
     $("imageNote").dataset.currentImage = "";
     $("imageNote").textContent = "Choose an image from your device.";
+
     $("formTitle").textContent = "Add New Product";
     $("saveBtn").textContent = "Add Product";
     $("cancelEditBtn").style.display = "none";
@@ -257,7 +407,7 @@ function resetForm() {
 
 $("cancelEditBtn").addEventListener("click", resetForm);
 
-// Delete product
+// DELETE PRODUCT
 async function deleteProduct(product) {
     if (!confirm(`Delete "${product.name}"?`)) return;
 
@@ -275,11 +425,12 @@ async function deleteProduct(product) {
     await loadAdminProducts();
 }
 
-// Check existing login
+// AUTH STATE
 supabaseClient.auth.onAuthStateChange((event, session) => {
     if (event === "SIGNED_OUT" || !session) {
         showLogin();
     }
 });
 
+// CHECK LOGIN
 verifyAdmin();

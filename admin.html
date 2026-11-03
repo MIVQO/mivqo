@@ -1,26 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>MIVQO Admin Dashboard</title>
+
     <link rel="stylesheet" href="style.css">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <style>
         .admin-container {
             max-width: 900px;
             margin: 50px auto;
             padding: 25px;
         }
+
         .admin-box {
             background: #f7faf7;
             padding: 25px;
             border-radius: 12px;
             margin-bottom: 25px;
         }
-        .admin-box h2 { margin-bottom: 20px; }
-        .admin-form input, .admin-form textarea,
+
+        .admin-box h2 {
+            margin-bottom: 20px;
+        }
+
+        .admin-form input,
+        .admin-form textarea,
         .admin-form select {
             width: 100%;
             padding: 13px;
@@ -28,9 +40,18 @@
             border: 1px solid #ddd;
             border-radius: 7px;
             font: inherit;
+            background: white;
         }
-        .admin-form textarea { min-height: 90px; }
-        .admin-form label { font-weight: 600; font-size: 14px; }
+
+        .admin-form textarea {
+            min-height: 90px;
+        }
+
+        .admin-form label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
         .admin-btn {
             background: #16834a;
             color: white;
@@ -40,8 +61,15 @@
             cursor: pointer;
             font-weight: 700;
         }
-        .admin-btn.secondary { background: #555; }
-        .admin-btn.danger { background: #c0392b; }
+
+        .admin-btn.secondary {
+            background: #555;
+        }
+
+        .admin-btn.danger {
+            background: #c0392b;
+        }
+
         .admin-product {
             background: white;
             padding: 15px;
@@ -54,96 +82,264 @@
             gap: 12px;
             flex-wrap: wrap;
         }
+
         .admin-product img {
             width: 65px;
             height: 65px;
             object-fit: contain;
         }
-        .admin-actions { display: flex; gap: 8px; }
-        #dashboard { display: none; }
-        #status { margin: 12px 0; color: #16834a; }
+
+        .admin-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .category-admin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            padding: 12px 15px;
+            border: 1px solid #e5eae5;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .category-admin-item span {
+            font-weight: 600;
+            color: #333;
+        }
+
+        #dashboard {
+            display: none;
+        }
+
+        #status {
+            margin: 12px 0;
+            color: #16834a;
+        }
+
+        #categoryStatus {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #16834a;
+        }
+
+        #imageNote {
+            font-size: 12px;
+            color: #777;
+        }
+
         @media(max-width:600px) {
-            .admin-container { padding: 15px; margin: 25px auto; }
+            .admin-container {
+                padding: 15px;
+                margin: 25px auto;
+            }
+
+            .admin-box {
+                padding: 18px;
+            }
         }
     </style>
+
 </head>
+
 <body>
 
-<header class="navbar">
-    <a href="index.html" class="logo">MIVQO</a>
-    <a href="index.html">Visit Website →</a>
-</header>
+    <!-- HEADER -->
+    <header class="navbar">
 
-<main class="admin-container">
+        <a href="index.html" class="logo">
+            MIVQO
+        </a>
 
-    <section class="admin-box" id="loginSection">
-        <h2>Admin Login</h2>
-        <form id="loginForm" class="admin-form">
-            <label>Email</label>
-            <input type="email" id="adminEmail" required>
+        <a href="index.html">Visit Website →</a>
 
-            <label>Password</label>
-            <input type="password" id="adminPassword" required>
+    </header>
 
-            <button class="admin-btn" type="submit">Login</button>
-        </form>
-    </section>
 
-    <section id="dashboard">
-        <div class="admin-box">
-            <h2>MIVQO Dashboard</h2>
-            <p>Manage your website products here.</p>
-            <br>
-            <button class="admin-btn secondary" id="logoutBtn">Logout</button>
-        </div>
+    <main class="admin-container">
 
-        <div class="admin-box">
-            <h2 id="formTitle">Add New Product</h2>
+        <!-- LOGIN -->
+        <section class="admin-box" id="loginSection">
 
-            <form id="productForm" class="admin-form">
-                <input type="hidden" id="productId">
+            <h2>Admin Login</h2>
 
-                <label>Product Name</label>
-                <input type="text" id="productName" required>
+            <form id="loginForm" class="admin-form">
 
-                <label>Price (₹)</label>
-                <input type="number" id="productPrice" min="0" step="0.01" required>
+                <label>Email</label>
+                <input type="email" id="adminEmail" required>
 
-                <label>Category</label>
-                <input type="text" id="productCategory">
+                <label>Password</label>
+                <input type="password" id="adminPassword" required>
 
-                <label>Description</label>
-                <textarea id="productDescription"></textarea>
+                <button class="admin-btn" type="submit">
+                    Login
+                </button>
 
-                <label>Product Type</label>
-                <select id="productType" required>
-                    <option value="own">Own Product – WhatsApp Order</option>
-                    <option value="affiliate">Affiliate Product</option>
-                </select>
+            </form>
 
-                <label>Affiliate Link (Affiliate products only)</label>
-                <input type="url" id="affiliateLink" placeholder="https://...">
+        </section>
 
-                <label>Product Image</label>
-                <input type="file" id="productImage" accept="image/*">
-                <p id="imageNote">Choose an image from your device.</p>
+
+        <!-- DASHBOARD -->
+        <section id="dashboard">
+
+            <div class="admin-box">
+
+                <h2>MIVQO Dashboard</h2>
+
+                <p>Manage your website products and categories here.</p>
 
                 <br>
-                <button class="admin-btn" type="submit" id="saveBtn">Add Product</button>
-                <button class="admin-btn secondary" type="button" id="cancelEditBtn" style="display:none;">Cancel Edit</button>
-            </form>
-            <p id="status"></p>
-        </div>
 
-        <div class="admin-box">
-            <h2>Manage Products</h2>
-            <div id="adminProductList">Loading products...</div>
-        </div>
-    </section>
+                <button class="admin-btn secondary" id="logoutBtn">
+                    Logout
+                </button>
 
-</main>
+            </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="admin.js"></script>
+
+            <!-- CATEGORY MANAGEMENT -->
+            <div class="admin-box">
+
+                <h2>Manage Categories</h2>
+
+                <p style="font-size:13px;color:#777;margin-bottom:18px;">
+                    Add or delete product categories.
+                </p>
+
+                <form id="categoryForm" class="admin-form">
+
+                    <label>New Category Name</label>
+
+                    <input
+                        type="text"
+                        id="newCategoryName"
+                        placeholder="Example: Electronics"
+                        required
+                    >
+
+                    <button class="admin-btn" type="submit">
+                        Add Category +
+                    </button>
+
+                </form>
+
+                <p id="categoryStatus"></p>
+
+                <h3 style="margin:22px 0 12px;font-size:16px;">
+                    Existing Categories
+                </h3>
+
+                <div id="adminCategoryList">
+                    Loading categories...
+                </div>
+
+            </div>
+
+
+            <!-- ADD / EDIT PRODUCT -->
+            <div class="admin-box">
+
+                <h2 id="formTitle">Add New Product</h2>
+
+                <form id="productForm" class="admin-form">
+
+                    <input type="hidden" id="productId">
+
+                    <label>Product Name</label>
+                    <input type="text" id="productName" required>
+
+                    <label>Price (₹)</label>
+                    <input
+                        type="number"
+                        id="productPrice"
+                        min="0"
+                        step="0.01"
+                        required
+                    >
+
+                    <label>Category</label>
+
+                    <select id="productCategory" required>
+                        <option value="">Select Category</option>
+                    </select>
+
+                    <label>Description</label>
+                    <textarea id="productDescription"></textarea>
+
+                    <label>Product Type</label>
+
+                    <select id="productType" required>
+                        <option value="own">Own Product – WhatsApp Order</option>
+                        <option value="affiliate">Affiliate Product</option>
+                    </select>
+
+                    <label>Affiliate Link (Affiliate products only)</label>
+
+                    <input
+                        type="url"
+                        id="affiliateLink"
+                        placeholder="https://..."
+                    >
+
+                    <label>Product Image</label>
+
+                    <input
+                        type="file"
+                        id="productImage"
+                        accept="image/*"
+                    >
+
+                    <p id="imageNote">
+                        Choose an image from your device.
+                    </p>
+
+                    <br>
+
+                    <button class="admin-btn" type="submit" id="saveBtn">
+                        Add Product
+                    </button>
+
+                    <button
+                        class="admin-btn secondary"
+                        type="button"
+                        id="cancelEditBtn"
+                        style="display:none;"
+                    >
+                        Cancel Edit
+                    </button>
+
+                </form>
+
+                <p id="status"></p>
+
+            </div>
+
+
+            <!-- MANAGE PRODUCTS -->
+            <div class="admin-box">
+
+                <h2>Manage Products</h2>
+
+                <div id="adminProductList">
+                    Loading products...
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- ADMIN JAVASCRIPT -->
+    <script src="admin.js"></script>
+
 </body>
 </html>
