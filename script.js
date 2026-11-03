@@ -30,7 +30,7 @@ async function loadProducts() {
         id: item.id,
         name: item.name,
         price: item.price,
-        image: item.image_url || "https://placehold.co/600x450/f1f8f2/16834a?text=Dealbox",
+        image: item.image_url || "https://placehold.co/600x450/f1f8f2/16834a?text=MIVQO",
         description: item.description || "",
         type: item.product_type,
         link: item.affiliate_url || "",
