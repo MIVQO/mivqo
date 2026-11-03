@@ -326,3 +326,9 @@ footer p {
         grid-template-columns: 1fr;
     }
 }
+.logo img {
+    height: 45px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
