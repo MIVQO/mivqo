@@ -1,0 +1,6 @@
+
+User-agent: *
+Allow: /
+
+Sitemap: https://mivqo.github.io/mivqo/sitemap.xml
+
