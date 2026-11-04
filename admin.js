@@ -113,13 +113,11 @@ async function loadCategories() {
     }
 
     data.forEach(category => {
-        // Product dropdown
         const option = document.createElement("option");
         option.value = category.name;
         option.textContent = category.name;
         categorySelect.appendChild(option);
 
-        // Admin category list
         const row = document.createElement("div");
         row.className = "admin-product";
 
@@ -129,7 +127,6 @@ async function loadCategories() {
         const remove = document.createElement("button");
         remove.className = "admin-btn danger";
         remove.textContent = "Delete";
-
         remove.onclick = () => deleteCategory(category);
 
         row.append(name, remove);
@@ -231,7 +228,7 @@ async function loadAdminProducts() {
 
     $("adminProductList").innerHTML = "";
 
-    if (!data.length) {
+    if (!data || data.length === 0) {
         $("adminProductList").textContent = "No products found.";
         return;
     }
@@ -248,7 +245,7 @@ async function loadAdminProducts() {
         const img = document.createElement("img");
         img.src = product.image_url ||
             "https://placehold.co/100x100?text=Product";
-        img.alt = product.name;
+        img.alt = product.image_alt || product.name;
 
         const details = document.createElement("div");
 
@@ -307,6 +304,7 @@ $("productForm").addEventListener("submit", async event => {
 
     const saveButton = $("saveBtn");
     saveButton.disabled = true;
+
     showStatus("Saving product...");
 
     try {
@@ -327,7 +325,13 @@ $("productForm").addEventListener("submit", async event => {
             product_type: $("productType").value,
             affiliate_url: $("affiliateLink").value.trim() || null,
             image_url: imageUrl || null,
-            is_active: true
+            is_active: true,
+
+            // SEO FIELDS
+            seo_title: $("seoTitle").value.trim() || null,
+            seo_description: $("seoDescription").value.trim() || null,
+            seo_keywords: $("seoKeywords").value.trim() || null,
+            image_alt: $("imageAlt").value.trim() || null
         };
 
         if (!product.category) {
@@ -378,6 +382,12 @@ function editProduct(product) {
     $("productDescription").value = product.description || "";
     $("productType").value = product.product_type;
     $("affiliateLink").value = product.affiliate_url || "";
+
+    // LOAD SEO FIELDS
+    $("seoTitle").value = product.seo_title || "";
+    $("seoDescription").value = product.seo_description || "";
+    $("seoKeywords").value = product.seo_keywords || "";
+    $("imageAlt").value = product.image_alt || "";
 
     $("productImage").value = "";
     $("imageNote").dataset.currentImage = product.image_url || "";
