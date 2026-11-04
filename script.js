@@ -2,7 +2,7 @@
 const SUPABASE_URL = "https://ysufdooypagdusicjrfv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gIRNdakUJshJhb3UGzu4sg_e0GLMcsO";
 
-const WHATSAPP_NUMBER = "919526684957";
+const WHATSAPP_NUMBER = "919496714212";
 const CONTACT_EMAIL = "shopmivqo@gmail.com";
 const WEBSITE_URL = "https://mivqo.github.io/mivqo/";
 
