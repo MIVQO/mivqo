@@ -1,3 +1,4 @@
+
 const SUPABASE_URL = "https://ysufdooypagdusicjrfv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gIRNdakUJshJhb3UGzu4sg_e0GLMcsO";
 
@@ -19,6 +20,12 @@ let selectedCategory = "all";
 
 const productGrid = document.getElementById("productGrid");
 const categoryFilters = document.getElementById("categoryFilters");
+
+
+// PRODUCT PAGE URL
+function getProductURL(id) {
+    return WEBSITE_URL + "product.html?id=" + encodeURIComponent(id);
+}
 
 
 // LOAD PRODUCTS
@@ -45,7 +52,11 @@ async function loadProducts() {
             description: item.description || "",
             type: item.product_type,
             link: item.affiliate_url || "",
-            category: item.category || ""
+            category: item.category || "",
+            seoTitle: item.seo_title || "",
+            seoDescription: item.seo_description || "",
+            seoKeywords: item.seo_keywords || "",
+            imageAlt: item.image_alt || item.name
         }));
 
         await loadCategories();
@@ -97,9 +108,7 @@ async function loadCategories() {
         const button = document.createElement("button");
         button.className = "category-btn";
         button.textContent = category;
-
         button.onclick = () => filterCategory(category);
-
         categoryFilters.appendChild(button);
     });
 }
@@ -160,7 +169,7 @@ function renderProducts(list) {
 
         const img = document.createElement("img");
         img.src = product.image;
-        img.alt = product.name || "MIVQO Product";
+        img.alt = product.imageAlt || product.name || "MIVQO Product";
 
         img.onerror = () => {
             img.src = "https://placehold.co/600x450/f1f8f2/16834a?text=MIVQO";
@@ -177,8 +186,10 @@ function renderProducts(list) {
         price.textContent = "₹" + product.price;
 
         const button = document.createElement("button");
-        button.textContent = "View Details";
-        button.onclick = () => showProductDetails(product.id);
+        button.textContent = "View Product";
+        button.onclick = () => {
+            window.location.href = getProductURL(product.id);
+        };
 
         info.append(name, price, button);
         card.append(img, info);
@@ -205,7 +216,7 @@ function showAllProducts() {
 }
 
 
-// PRODUCT DETAILS
+// PRODUCT DETAILS MODAL
 function showProductDetails(id) {
     const product = products.find(item => String(item.id) === String(id));
 
@@ -254,9 +265,8 @@ function showProductDetails(id) {
 
     const img = document.createElement("img");
     img.src = product.image;
-    img.alt = product.name;
-    img.style.cssText =
-        "width:100%;height:210px;object-fit:contain;";
+    img.alt = product.imageAlt || product.name;
+    img.style.cssText = "width:100%;height:210px;object-fit:contain;";
 
     const title = document.createElement("h2");
     title.textContent = product.name;
@@ -268,6 +278,17 @@ function showProductDetails(id) {
     const description = document.createElement("p");
     description.textContent = product.description;
     description.style.margin = "15px 0";
+
+    const pageLink = document.createElement("a");
+    pageLink.href = getProductURL(product.id);
+    pageLink.textContent = "Open Product Page";
+    pageLink.style.cssText = `
+        display:block;
+        text-align:center;
+        margin:15px 0;
+        color:#16834a;
+        font-weight:bold;
+    `;
 
     const buy = document.createElement("button");
     buy.textContent = "Buy Now →";
@@ -296,13 +317,11 @@ function showProductDetails(id) {
         }
     };
 
-    panel.append(close, img, title, price, description, buy);
+    panel.append(close, img, title, price, description, pageLink, buy);
     details.appendChild(panel);
 
     details.onclick = event => {
-        if (event.target === details) {
-            details.remove();
-        }
+        if (event.target === details) details.remove();
     };
 
     document.body.appendChild(details);
@@ -469,8 +488,7 @@ function showCheckoutForm(product) {
         const pincode = form.elements.pincode.value.trim();
         const payment = paymentSelect.value;
 
-        const productPage =
-            WEBSITE_URL + "#product-" + encodeURIComponent(product.id);
+        const productPage = getProductURL(product.id);
 
         const message =
             "🛍️ *NEW ORDER - MIVQO*\n\n" +
