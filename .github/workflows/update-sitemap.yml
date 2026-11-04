@@ -1,0 +1,82 @@
+
+name: Update MIVQO Sitemap
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-sitemap:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate sitemap
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import json
+          import urllib.request
+          import xml.etree.ElementTree as ET
+
+          base = "https://mivqo.github.io/mivqo/"
+          api = os.environ["SUPABASE_URL"].rstrip("/")
+          key = os.environ["SUPABASE_KEY"]
+
+          url = api + "/rest/v1/products?select=id&is_active=eq.true"
+
+          request = urllib.request.Request(url, headers={
+              "apikey": key,
+              "Authorization": "Bearer " + key
+          })
+
+          with urllib.request.urlopen(request) as response:
+              products = json.loads(response.read().decode())
+
+          namespace = "http://www.sitemaps.org/schemas/sitemap/0.9"
+          ET.register_namespace("", namespace)
+
+          root = ET.Element("{" + namespace + "}urlset")
+
+          urls = [base]
+
+          for product in products:
+              urls.append(
+                  base + "product.html?id=" + str(product["id"])
+              )
+
+          for page in urls:
+              item = ET.SubElement(
+                  root, "{" + namespace + "}url"
+              )
+              ET.SubElement(
+                  item, "{" + namespace + "}loc"
+              ).text = page
+
+          ET.ElementTree(root).write(
+              "sitemap.xml",
+              encoding="utf-8",
+              xml_declaration=True
+          )
+
+          print("Sitemap updated:", len(urls), "URLs")
+          PY
+
+      - name: Commit sitemap
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sitemap.xml
+          git diff --cached --quiet || (
+            git commit -m "Update product sitemap" &&
+            git push
+          )
