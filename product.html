@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Loading Product | MIVQO</title>
+  <meta name="description" content="Discover quality products at MIVQO.">
+  <meta name="robots" content="index, follow">
+
+  <link rel="canonical" href="https://mivqo.github.io/mivqo/">
+
+  <meta property="og:site_name" content="MIVQO">
+  <meta property="og:type" content="product">
+  <meta property="og:title" content="MIVQO">
+  <meta property="og:description" content="Discover quality products at MIVQO.">
+  <meta property="og:image" content="https://mivqo.github.io/mivqo/favicon.ico">
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f8fa;
+      color: #171717;
+    }
+    header {
+      padding: 20px 7%;
+      background: #fff;
+      border-bottom: 1px solid #eee;
+    }
+    .logo {
+      color: #111;
+      font-size: 27px;
+      font-weight: 800;
+      text-decoration: none;
+      letter-spacing: 2px;
+    }
+    main {
+      max-width: 1050px;
+      margin: 45px auto;
+      padding: 20px;
+    }
+    .product {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 35px;
+      box-shadow: 0 5px 25px #00000008;
+    }
+    .product img {
+      width: 100%;
+      max-height: 450px;
+      object-fit: contain;
+      border-radius: 12px;
+      background: #f8f8f8;
+    }
+    h1 { font-size: 30px; margin: 5px 0 15px; }
+    .price { font-size: 27px; font-weight: 700; margin: 20px 0; }
+    .description { color: #666; line-height: 1.7; }
+    .category { color: #777; font-size: 14px; }
+    .buy {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 15px 30px;
+      background: #111;
+      color: white;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    #message { text-align: center; padding: 60px 15px; }
+    @media(max-width:700px) {
+      .product { grid-template-columns: 1fr; padding: 18px; }
+      h1 { font-size: 24px; }
+      main { margin: 20px auto; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <a class="logo" href="index.html">MIVQO</a>
+  </header>
+
+  <main>
+    <div id="message">Loading product...</div>
+    <div class="product" id="product" hidden>
+      <div>
+        <img id="productImage" alt="">
+      </div>
+      <div>
+        <p class="category" id="category"></p>
+        <h1 id="name"></h1>
+        <div class="price" id="price"></div>
+        <p class="description" id="description"></p>
+        <a class="buy" id="buyButton" href="#" target="_blank" rel="noopener">
+          Buy Now
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://ysufdooypagdusicjrfv.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_gIRNdakUJshJHb3UGzu4sg_e0GLMcsO";
+
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    async function loadProduct() {
+      const id = new URLSearchParams(window.location.search).get("id");
+      const message = document.getElementById("message");
+
+      if (!id) {
+        message.textContent = "Product not found.";
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from("products")
+        .select("*")
+        .eq("id", id)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (error || !data) {
+        message.textContent = "Sorry, this product is unavailable.";
+        return;
+      }
+
+      const product = data;
+      const title = product.seo_title || product.name;
+      const description = product.seo_description ||
+        product.description || "Discover this product at MIVQO.";
+
+      document.title = title + " | MIVQO";
+
+      document.querySelector('meta[name="description"]')
+        .setAttribute("content", description);
+
+      document.querySelector('link[rel="canonical"]')
+        .setAttribute("href", window.location.href);
+
+      document.querySelector('meta[property="og:title"]')
+        .setAttribute("content", title);
+
+      document.querySelector('meta[property="og:description"]')
+        .setAttribute("content", description);
+
+      document.querySelector('meta[property="og:image"]')
+        .setAttribute("content", product.image_url || "");
+
+      document.getElementById("name").textContent = product.name;
+      document.getElementById("price").textContent = "₹" + product.price;
+      document.getElementById("description").textContent =
+        product.description || "";
+      document.getElementById("category").textContent =
+        product.category || "";
+
+      const image = document.getElementById("productImage");
+      image.src = product.image_url || "";
+      image.alt = product.image_alt || product.name;
+
+      const buyButton = document.getElementById("buyButton");
+
+      if (product.product_type === "affiliate" && product.affiliate_url) {
+        buyButton.href = product.affiliate_url;
+        buyButton.textContent = "Buy Now";
+      } else {
+        const number = "919526684957";
+        const text = `Hi MIVQO, I am interested in ${product.name}. Price: ₹${product.price}`;
+        buyButton.href =
+          `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
+        buyButton.textContent = "Order on WhatsApp";
+      }
+
+      const schema = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.name,
+        "description": description,
+        "image": product.image_url ? [product.image_url] : [],
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "INR",
+          "price": product.price,
+          "availability": "https://schema.org/InStock"
+        }
+      };
+
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.textContent = JSON.stringify(schema);
+      document.head.appendChild(script);
+
+      message.hidden = true;
+      document.getElementById("product").hidden = false;
+    }
+
+    loadProduct();
+  </script>
+</body>
+</html>
