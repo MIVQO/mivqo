@@ -94,9 +94,12 @@
       padding: 15px 30px;
       background: #111;
       color: white;
+      border: none;
       border-radius: 8px;
       text-decoration: none;
       font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
     }
 
     .buy:hover {
@@ -118,6 +121,121 @@
       font-weight: bold;
     }
 
+    /* ORDER FORM MODAL */
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .modal-content {
+      background: #fff;
+      max-width: 520px;
+      width: 100%;
+      margin: 25px auto;
+      padding: 25px;
+      border-radius: 14px;
+      position: relative;
+    }
+
+    .modal-content h2 {
+      margin: 0 0 8px;
+      font-size: 23px;
+    }
+
+    .modal-subtitle {
+      color: #777;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .close-modal {
+      position: absolute;
+      right: 18px;
+      top: 15px;
+      border: none;
+      background: none;
+      font-size: 28px;
+      cursor: pointer;
+      color: #555;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 7px;
+      font-size: 15px;
+      font-family: Arial, sans-serif;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #16834a;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 75px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .order-summary {
+      background: #f5f7f5;
+      padding: 14px;
+      border-radius: 8px;
+      margin: 15px 0;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .whatsapp-submit {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 8px;
+      background: #16834a;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .whatsapp-submit:hover {
+      background: #116b3c;
+    }
+
+    .privacy-note {
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+
     @media(max-width: 700px) {
       .product {
         grid-template-columns: 1fr;
@@ -130,6 +248,18 @@
 
       main {
         margin: 20px auto;
+      }
+
+      .modal-content {
+        padding: 22px 17px;
+        margin: 10px auto;
+      }
+    }
+
+    @media(max-width: 400px) {
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
       }
     }
   </style>
@@ -162,15 +292,9 @@
 
         <p class="description" id="description"></p>
 
-        <a
-          class="buy"
-          id="buyButton"
-          href="#"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <button class="buy" id="buyButton" type="button">
           Buy Now
-        </a>
+        </button>
 
         <br>
 
@@ -182,6 +306,154 @@
     </div>
 
   </main>
+
+  <!-- ORDER FORM MODAL -->
+
+  <div class="modal" id="orderModal">
+
+    <div class="modal-content">
+
+      <button class="close-modal" id="closeModal" type="button">
+        &times;
+      </button>
+
+      <h2>Delivery Details</h2>
+
+      <p class="modal-subtitle">
+        Enter your details to continue with your MIVQO order.
+      </p>
+
+      <form id="orderForm">
+
+        <div class="form-group">
+          <label for="customerName">Full Name *</label>
+          <input
+            type="text"
+            id="customerName"
+            placeholder="Enter your full name"
+            autocomplete="name"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="customerPhone">Mobile Number *</label>
+          <input
+            type="tel"
+            id="customerPhone"
+            placeholder="10-digit mobile number"
+            inputmode="numeric"
+            pattern="[6-9][0-9]{9}"
+            maxlength="10"
+            autocomplete="tel"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="customerAddress">House Name / House Number *</label>
+          <textarea
+            id="customerAddress"
+            placeholder="Enter your house name or house number"
+            autocomplete="street-address"
+            required
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="customerStreet">Street / Locality *</label>
+          <input
+            type="text"
+            id="customerStreet"
+            placeholder="Street or locality"
+            required
+          >
+        </div>
+
+        <div class="form-row">
+
+          <div class="form-group">
+            <label for="customerCity">City / Town *</label>
+            <input
+              type="text"
+              id="customerCity"
+              placeholder="City / Town"
+              autocomplete="address-level2"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="customerDistrict">District *</label>
+            <input
+              type="text"
+              id="customerDistrict"
+              placeholder="District"
+              required
+            >
+          </div>
+
+        </div>
+
+        <div class="form-row">
+
+          <div class="form-group">
+            <label for="customerState">State *</label>
+            <input
+              type="text"
+              id="customerState"
+              placeholder="State"
+              autocomplete="address-level1"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="customerPincode">PIN Code *</label>
+            <input
+              type="text"
+              id="customerPincode"
+              placeholder="6-digit PIN"
+              inputmode="numeric"
+              pattern="[0-9]{6}"
+              maxlength="6"
+              autocomplete="postal-code"
+              required
+            >
+          </div>
+
+        </div>
+
+        <div class="form-group">
+          <label for="customerQuantity">Quantity *</label>
+          <input
+            type="number"
+            id="customerQuantity"
+            value="1"
+            min="1"
+            max="99"
+            required
+          >
+        </div>
+
+        <div class="order-summary" id="orderSummary">
+          Product details will appear here.
+        </div>
+
+        <button class="whatsapp-submit" type="submit">
+          Continue to WhatsApp
+        </button>
+
+        <p class="privacy-note">
+          Your details will be shared with MIVQO through WhatsApp
+          to process your order.
+        </p>
+
+      </form>
+
+    </div>
+
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -200,10 +472,12 @@
       SUPABASE_KEY
     );
 
+    const WHATSAPP_NUMBER = "919496714212";
 
-    // =====================================
-    // MIVQO VISITOR TRACKING
-    // =====================================
+    let currentProduct = null;
+
+
+    // VISITOR TRACKING
 
     async function trackProductVisit(productId) {
 
@@ -229,9 +503,7 @@
         }
 
       } catch (error) {
-
         console.error("Product tracking failed:", error);
-
       }
 
     }
@@ -250,7 +522,6 @@
       if (!id) {
         message.textContent =
           "Product ID is missing from the URL.";
-
         return;
       }
 
@@ -262,72 +533,40 @@
           .eq("id", id)
           .maybeSingle();
 
-
-        // DATABASE ERROR
-
         if (error) {
-
           console.error("Supabase Product Error:", error);
-
-          message.textContent =
-            "Database Error: " + error.message;
-
+          message.textContent = "Database Error: " + error.message;
           return;
         }
-
-
-        // PRODUCT NOT FOUND
 
         if (!data) {
-
-          message.textContent =
-            "Product ID not found: " + id;
-
+          message.textContent = "Product ID not found: " + id;
           return;
         }
-
-
-        // CHECK PRODUCT STATUS
 
         if (data.is_active !== true) {
-
           message.textContent =
             "This product is currently inactive.";
-
           return;
         }
 
-
         const product = data;
-
-
-        // TRACK VALID PRODUCT VISIT
+        currentProduct = product;
 
         trackProductVisit(product.id);
 
-
-        const title =
-          product.seo_title || product.name;
+        const title = product.seo_title || product.name;
 
         const description =
           product.seo_description ||
           product.description ||
           "Discover this product at MIVQO.";
 
-
-        // SEO TITLE
-
         document.title = title + " | MIVQO";
-
-
-        // SEO DESCRIPTION
 
         document.querySelector(
           'meta[name="description"]'
         ).setAttribute("content", description);
-
-
-        // CANONICAL URL
 
         document.querySelector(
           'link[rel="canonical"]'
@@ -337,9 +576,6 @@
           window.location.pathname +
           window.location.search
         );
-
-
-        // OPEN GRAPH
 
         document.querySelector(
           'meta[property="og:title"]'
@@ -356,7 +592,6 @@
           product.image_url || ""
         );
 
-
         // PRODUCT INFORMATION
 
         document.getElementById("name").textContent =
@@ -371,11 +606,9 @@
         document.getElementById("category").textContent =
           product.category || "";
 
-
         // PRODUCT IMAGE
 
-        const image =
-          document.getElementById("productImage");
+        const image = document.getElementById("productImage");
 
         image.src = product.image_url || "";
 
@@ -385,31 +618,30 @@
 
         // BUY BUTTON
 
-        const buyButton =
-          document.getElementById("buyButton");
-
+        const buyButton = document.getElementById("buyButton");
 
         if (
           product.product_type === "affiliate" &&
           product.affiliate_url
         ) {
 
-          buyButton.href = product.affiliate_url;
-
           buyButton.textContent = "Buy Now";
+
+          buyButton.onclick = () => {
+            window.open(
+              product.affiliate_url,
+              "_blank",
+              "noopener,noreferrer"
+            );
+          };
 
         } else {
 
-          const number = "919496714212";
+          buyButton.textContent = "Buy Now";
 
-          const text =
-            `Hi MIVQO, I am interested in ${product.name}. Price: ₹${product.price}`;
-
-          buyButton.href =
-            `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
-
-          buyButton.textContent =
-            "Order on WhatsApp";
+          buyButton.onclick = () => {
+            openOrderModal();
+          };
 
         }
 
@@ -417,43 +649,25 @@
         // PRODUCT STRUCTURED DATA
 
         const schema = {
-
           "@context": "https://schema.org/",
-
           "@type": "Product",
-
           "name": product.name,
-
           "description": description,
-
           "image": product.image_url
             ? [product.image_url]
             : [],
-
           "offers": {
-
             "@type": "Offer",
-
             "priceCurrency": "INR",
-
             "price": product.price,
-
-            "availability":
-              "https://schema.org/InStock"
-
+            "availability": "https://schema.org/InStock"
           }
-
         };
 
+        const schemaScript = document.createElement("script");
 
-        const schemaScript =
-          document.createElement("script");
-
-        schemaScript.type =
-          "application/ld+json";
-
-        schemaScript.textContent =
-          JSON.stringify(schema);
+        schemaScript.type = "application/ld+json";
+        schemaScript.textContent = JSON.stringify(schema);
 
         document.head.appendChild(schemaScript);
 
@@ -462,20 +676,193 @@
 
         message.hidden = true;
 
-        document.getElementById("product").hidden =
-          false;
-
+        document.getElementById("product").hidden = false;
 
       } catch (error) {
 
         console.error("Product Page Error:", error);
 
-        message.textContent =
-          "Error: " + error.message;
+        message.textContent = "Error: " + error.message;
 
       }
 
     }
+
+
+    // OPEN ORDER MODAL
+
+    function openOrderModal() {
+
+      if (!currentProduct) return;
+
+      document.getElementById("orderModal").style.display = "block";
+
+      document.getElementById("orderSummary").innerHTML =
+        `<strong>Product:</strong> ${escapeHTML(currentProduct.name)}
+        <br>
+        <strong>Price:</strong> ₹${Number(currentProduct.price).toLocaleString("en-IN")}
+        <br>
+        <strong>Quantity:</strong> 1
+        <br>
+        <strong>Total:</strong> ₹${Number(currentProduct.price).toLocaleString("en-IN")}`;
+
+      document.getElementById("customerName").focus();
+
+    }
+
+
+    // CLOSE ORDER MODAL
+
+    function closeOrderModal() {
+      document.getElementById("orderModal").style.display = "none";
+    }
+
+    document.getElementById("closeModal").addEventListener(
+      "click",
+      closeOrderModal
+    );
+
+    document.getElementById("orderModal").addEventListener(
+      "click",
+      event => {
+        if (event.target.id === "orderModal") {
+          closeOrderModal();
+        }
+      }
+    );
+
+
+    // ESCAPE HTML
+
+    function escapeHTML(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+
+    // UPDATE ORDER SUMMARY
+
+    document.getElementById("customerQuantity").addEventListener(
+      "input",
+      () => {
+
+        if (!currentProduct) return;
+
+        const quantity = Math.max(
+          1,
+          Number(document.getElementById("customerQuantity").value) || 1
+        );
+
+        const total = Number(currentProduct.price) * quantity;
+
+        document.getElementById("orderSummary").innerHTML =
+          `<strong>Product:</strong> ${escapeHTML(currentProduct.name)}
+          <br>
+          <strong>Price:</strong> ₹${Number(currentProduct.price).toLocaleString("en-IN")}
+          <br>
+          <strong>Quantity:</strong> ${quantity}
+          <br>
+          <strong>Total:</strong> ₹${total.toLocaleString("en-IN")}`;
+
+      }
+    );
+
+
+    // SUBMIT ORDER TO WHATSAPP
+
+    document.getElementById("orderForm").addEventListener(
+      "submit",
+      event => {
+
+        event.preventDefault();
+
+        if (!currentProduct) return;
+
+        const name =
+          document.getElementById("customerName").value.trim();
+
+        const phone =
+          document.getElementById("customerPhone").value.trim();
+
+        const address =
+          document.getElementById("customerAddress").value.trim();
+
+        const street =
+          document.getElementById("customerStreet").value.trim();
+
+        const city =
+          document.getElementById("customerCity").value.trim();
+
+        const district =
+          document.getElementById("customerDistrict").value.trim();
+
+        const state =
+          document.getElementById("customerState").value.trim();
+
+        const pincode =
+          document.getElementById("customerPincode").value.trim();
+
+        const quantity =
+          Number(document.getElementById("customerQuantity").value);
+
+        if (!/^[6-9][0-9]{9}$/.test(phone)) {
+          alert("Please enter a valid 10-digit mobile number.");
+          return;
+        }
+
+        if (!/^[0-9]{6}$/.test(pincode)) {
+          alert("Please enter a valid 6-digit PIN code.");
+          return;
+        }
+
+        if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
+          alert("Please enter a quantity between 1 and 99.");
+          return;
+        }
+
+        const price = Number(currentProduct.price);
+        const total = price * quantity;
+
+        const orderMessage = `
+*MIVQO - NEW ORDER REQUEST*
+
+*Product Details*
+Product: ${currentProduct.name}
+Product ID: ${currentProduct.id}
+Price: ₹${price}
+Quantity: ${quantity}
+Total: ₹${total}
+
+*Customer Details*
+Name: ${name}
+Mobile: ${phone}
+
+*Delivery Address*
+House Name / Number: ${address}
+Street / Locality: ${street}
+City / Town: ${city}
+District: ${district}
+State: ${state}
+PIN Code: ${pincode}
+
+Please confirm order.
+        `.trim();
+
+        const whatsappURL =
+          `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(orderMessage)}`;
+
+        window.open(
+          whatsappURL,
+          "_blank",
+          "noopener,noreferrer"
+        );
+
+      }
+    );
 
 
     // START
