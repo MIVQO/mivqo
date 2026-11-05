@@ -1,3 +1,4 @@
+
 const SUPABASE_URL = "https://ysufdooypagdusicjrfv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gIRNdakUJshJhb3UGzu4sg_e0GLMcsO";
 
@@ -26,6 +27,7 @@ async function showDashboard() {
 
     await loadCategories();
     await loadAdminProducts();
+    await loadVisitorAnalytics();
 }
 
 function showLogin() {
@@ -327,7 +329,6 @@ $("productForm").addEventListener("submit", async event => {
             image_url: imageUrl || null,
             is_active: true,
 
-            // SEO FIELDS
             seo_title: $("seoTitle").value.trim() || null,
             seo_description: $("seoDescription").value.trim() || null,
             seo_keywords: $("seoKeywords").value.trim() || null,
@@ -383,7 +384,6 @@ function editProduct(product) {
     $("productType").value = product.product_type;
     $("affiliateLink").value = product.affiliate_url || "";
 
-    // LOAD SEO FIELDS
     $("seoTitle").value = product.seo_title || "";
     $("seoDescription").value = product.seo_description || "";
     $("seoKeywords").value = product.seo_keywords || "";
@@ -434,6 +434,298 @@ async function deleteProduct(product) {
     alert("Product deleted successfully.");
     await loadAdminProducts();
 }
+
+
+// ===================================
+// MIVQO VISITOR ANALYTICS
+// ===================================
+
+// Fetch all records in pages to avoid the usual 1000-row limit.
+async function getAllVisitorRecords() {
+    const allRecords = [];
+    const pageSize = 1000;
+    let from = 0;
+
+    while (true) {
+        const { data, error } = await supabaseClient
+            .from("site_visits")
+            .select("id, visitor_id, page_path, product_id, visited_at")
+            .order("visited_at", { ascending: false })
+            .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+
+        allRecords.push(...(data || []));
+
+        if (!data || data.length < pageSize) break;
+
+        from += pageSize;
+    }
+
+    return allRecords;
+}
+
+// Local date boundaries
+function getLocalDayRange(date = new Date()) {
+    const start = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+    );
+
+    const end = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate() + 1
+    );
+
+    return {
+        start: start.getTime(),
+        end: end.getTime()
+    };
+}
+
+function formatDate(timestamp) {
+    return new Date(timestamp).toLocaleDateString();
+}
+
+function safeText(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// Load visitor dashboard
+async function loadVisitorAnalytics() {
+    const report = $("visitorReport");
+    const productViews = $("productViews");
+
+    report.textContent = "Loading visitor reports...";
+    productViews.textContent = "Loading product views...";
+
+    try {
+        const visits = await getAllVisitorRecords();
+
+        const uniqueIds = new Set(
+            visits.map(v => v.visitor_id).filter(Boolean)
+        );
+
+        const todayRange = getLocalDayRange();
+
+        const todayRecords = visits.filter(v => {
+            const time = new Date(v.visited_at).getTime();
+            return time >= todayRange.start && time < todayRange.end;
+        });
+
+        const todayUnique = new Set(
+            todayRecords.map(v => v.visitor_id).filter(Boolean)
+        );
+
+        $("totalVisits").textContent = visits.length.toLocaleString();
+        $("uniqueVisitors").textContent = uniqueIds.size.toLocaleString();
+        $("todayVisitors").textContent = todayUnique.size.toLocaleString();
+        $("todayVisits").textContent = todayRecords.length.toLocaleString();
+
+        await loadVisitorReport(visits);
+        await loadProductViews(visits);
+
+    } catch (error) {
+        report.textContent = "Could not load visitor data: " + error.message;
+        productViews.textContent = "Could not load product views.";
+        console.error("Visitor analytics error:", error);
+    }
+}
+
+// Daily report / date filter
+async function loadVisitorReport(existingVisits = null) {
+    const report = $("visitorReport");
+
+    report.textContent = "Loading report...";
+
+    try {
+        const visits = existingVisits || await getAllVisitorRecords();
+
+        const startValue = $("visitorStartDate").value;
+        const endValue = $("visitorEndDate").value;
+
+        let filtered = visits;
+
+        if (startValue) {
+            const start = new Date(startValue + "T00:00:00").getTime();
+
+            filtered = filtered.filter(v =>
+                new Date(v.visited_at).getTime() >= start
+            );
+        }
+
+        if (endValue) {
+            const end = new Date(endValue + "T00:00:00");
+            end.setDate(end.getDate() + 1);
+
+            filtered = filtered.filter(v =>
+                new Date(v.visited_at).getTime() < end.getTime()
+            );
+        }
+
+        const daily = {};
+
+        filtered.forEach(v => {
+            const date = new Date(v.visited_at).toLocaleDateString();
+
+            if (!daily[date]) {
+                daily[date] = {
+                    visits: 0,
+                    visitors: new Set()
+                };
+            }
+
+            daily[date].visits++;
+
+            if (v.visitor_id) {
+                daily[date].visitors.add(v.visitor_id);
+            }
+        });
+
+        const dates = Object.keys(daily).sort((a, b) => {
+            const [am, ad, ay] = a.split("/").map(Number);
+            const [bm, bd, by] = b.split("/").map(Number);
+
+            return new Date(ay, am - 1, ad) -
+                new Date(by, bm - 1, bd);
+        }).reverse();
+
+        if (dates.length === 0) {
+            report.textContent = "No visitor records found for this period.";
+            return;
+        }
+
+        let html = `
+            <div class="visitor-table-wrap">
+            <table class="visitor-report-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Total Visits</th>
+                        <th>Unique Visitors</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        dates.forEach(date => {
+            html += `
+                <tr>
+                    <td>${safeText(date)}</td>
+                    <td>${daily[date].visits.toLocaleString()}</td>
+                    <td>${daily[date].visitors.size.toLocaleString()}</td>
+                </tr>
+            `;
+        });
+
+        html += `
+                </tbody>
+            </table>
+            </div>
+        `;
+
+        report.innerHTML = html;
+
+    } catch (error) {
+        report.textContent = "Report error: " + error.message;
+    }
+}
+
+// Product-wise views
+async function loadProductViews(visits) {
+    const container = $("productViews");
+
+    const counts = {};
+
+    visits.forEach(v => {
+        if (v.product_id) {
+            counts[v.product_id] = (counts[v.product_id] || 0) + 1;
+        }
+    });
+
+    const productIds = Object.keys(counts);
+
+    if (productIds.length === 0) {
+        container.textContent = "No product views recorded yet.";
+        return;
+    }
+
+    const { data: products, error } = await supabaseClient
+        .from("products")
+        .select("id, name")
+        .in("id", productIds);
+
+    if (error) {
+        container.textContent = "Could not load product names: " + error.message;
+        return;
+    }
+
+    const names = {};
+
+    (products || []).forEach(p => {
+        names[p.id] = p.name;
+    });
+
+    const sorted = productIds.sort((a, b) => counts[b] - counts[a]);
+
+    let html = `
+        <div class="visitor-table-wrap">
+        <table class="visitor-report-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Total Views</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    sorted.forEach(id => {
+        html += `
+            <tr>
+                <td>${safeText(names[id] || "Deleted / unavailable product")}</td>
+                <td>${counts[id].toLocaleString()}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+            </tbody>
+        </table>
+        </div>
+    `;
+
+    container.innerHTML = html;
+}
+
+// Apply custom date filter
+$("filterVisitorsBtn").addEventListener("click", async () => {
+    const start = $("visitorStartDate").value;
+    const end = $("visitorEndDate").value;
+
+    if (start && end && start > end) {
+        alert("From Date cannot be later than To Date.");
+        return;
+    }
+
+    await loadVisitorReport();
+});
+
+// All dates
+$("allVisitorsBtn").addEventListener("click", async () => {
+    $("visitorStartDate").value = "";
+    $("visitorEndDate").value = "";
+
+    await loadVisitorReport();
+});
+
 
 // AUTH STATE
 supabaseClient.auth.onAuthStateChange((event, session) => {
