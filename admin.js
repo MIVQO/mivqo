@@ -440,7 +440,7 @@ async function deleteProduct(product) {
 // MIVQO VISITOR ANALYTICS
 // ===================================
 
-// Fetch all records in pages to avoid the usual 1000-row limit.
+// FETCH ALL VISITOR RECORDS
 async function getAllVisitorRecords() {
     const allRecords = [];
     const pageSize = 1000;
@@ -465,7 +465,7 @@ async function getAllVisitorRecords() {
     return allRecords;
 }
 
-// Local date boundaries
+// LOCAL DATE BOUNDARIES
 function getLocalDayRange(date = new Date()) {
     const start = new Date(
         date.getFullYear(),
@@ -485,10 +485,6 @@ function getLocalDayRange(date = new Date()) {
     };
 }
 
-function formatDate(timestamp) {
-    return new Date(timestamp).toLocaleDateString();
-}
-
 function safeText(value) {
     return String(value ?? "")
         .replace(/&/g, "&amp;")
@@ -498,7 +494,7 @@ function safeText(value) {
         .replace(/'/g, "&#039;");
 }
 
-// Load visitor dashboard
+// LOAD VISITOR DASHBOARD
 async function loadVisitorAnalytics() {
     const report = $("visitorReport");
     const productViews = $("productViews");
@@ -539,11 +535,10 @@ async function loadVisitorAnalytics() {
     }
 }
 
-// Daily report / date filter
+// MONTHLY + DAILY VISITOR REPORT
 async function loadVisitorReport(existingVisits = null) {
     const report = $("visitorReport");
-
-    report.textContent = "Loading report...";
+    report.textContent = "Loading reports...";
 
     try {
         const visits = existingVisits || await getAllVisitorRecords();
@@ -571,38 +566,90 @@ async function loadVisitorReport(existingVisits = null) {
         }
 
         const daily = {};
+        const monthly = {};
 
         filtered.forEach(v => {
-            const date = new Date(v.visited_at).toLocaleDateString();
+            const date = new Date(v.visited_at);
 
-            if (!daily[date]) {
-                daily[date] = {
+            const dayKey = [
+                date.getFullYear(),
+                String(date.getMonth() + 1).padStart(2, "0"),
+                String(date.getDate()).padStart(2, "0")
+            ].join("-");
+
+            const monthKey = dayKey.substring(0, 7);
+
+            if (!daily[dayKey]) {
+                daily[dayKey] = {
                     visits: 0,
                     visitors: new Set()
                 };
             }
 
-            daily[date].visits++;
+            if (!monthly[monthKey]) {
+                monthly[monthKey] = {
+                    visits: 0,
+                    visitors: new Set()
+                };
+            }
+
+            daily[dayKey].visits++;
+            monthly[monthKey].visits++;
 
             if (v.visitor_id) {
-                daily[date].visitors.add(v.visitor_id);
+                daily[dayKey].visitors.add(v.visitor_id);
+                monthly[monthKey].visitors.add(v.visitor_id);
             }
         });
 
-        const dates = Object.keys(daily).sort((a, b) => {
-            const [am, ad, ay] = a.split("/").map(Number);
-            const [bm, bd, by] = b.split("/").map(Number);
+        const dailyRows = Object.keys(daily).sort().reverse();
+        const monthlyRows = Object.keys(monthly).sort().reverse();
 
-            return new Date(ay, am - 1, ad) -
-                new Date(by, bm - 1, bd);
-        }).reverse();
-
-        if (dates.length === 0) {
+        if (dailyRows.length === 0) {
             report.textContent = "No visitor records found for this period.";
             return;
         }
 
         let html = `
+            <h3>Monthly Visitor Report</h3>
+            <div class="visitor-table-wrap">
+            <table class="visitor-report-table">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Total Visits</th>
+                        <th>Unique Visitors</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        monthlyRows.forEach(key => {
+            const [year, month] = key.split("-");
+
+            const monthName = new Date(
+                Number(year),
+                Number(month) - 1
+            ).toLocaleDateString("en-IN", {
+                month: "long",
+                year: "numeric"
+            });
+
+            html += `
+                <tr>
+                    <td>${safeText(monthName)}</td>
+                    <td>${monthly[key].visits.toLocaleString()}</td>
+                    <td>${monthly[key].visitors.size.toLocaleString()}</td>
+                </tr>
+            `;
+        });
+
+        html += `
+                </tbody>
+            </table>
+            </div>
+
+            <h3 style="margin-top:25px;">Daily Visitor Report</h3>
             <div class="visitor-table-wrap">
             <table class="visitor-report-table">
                 <thead>
@@ -615,12 +662,12 @@ async function loadVisitorReport(existingVisits = null) {
                 <tbody>
         `;
 
-        dates.forEach(date => {
+        dailyRows.forEach(key => {
             html += `
                 <tr>
-                    <td>${safeText(date)}</td>
-                    <td>${daily[date].visits.toLocaleString()}</td>
-                    <td>${daily[date].visitors.size.toLocaleString()}</td>
+                    <td>${safeText(key)}</td>
+                    <td>${daily[key].visits.toLocaleString()}</td>
+                    <td>${daily[key].visitors.size.toLocaleString()}</td>
                 </tr>
             `;
         });
@@ -638,7 +685,7 @@ async function loadVisitorReport(existingVisits = null) {
     }
 }
 
-// Product-wise views
+// PRODUCT-WISE VIEWS
 async function loadProductViews(visits) {
     const container = $("productViews");
 
@@ -663,7 +710,8 @@ async function loadProductViews(visits) {
         .in("id", productIds);
 
     if (error) {
-        container.textContent = "Could not load product names: " + error.message;
+        container.textContent =
+            "Could not load product names: " + error.message;
         return;
     }
 
@@ -705,7 +753,7 @@ async function loadProductViews(visits) {
     container.innerHTML = html;
 }
 
-// Apply custom date filter
+// APPLY CUSTOM DATE FILTER
 $("filterVisitorsBtn").addEventListener("click", async () => {
     const start = $("visitorStartDate").value;
     const end = $("visitorEndDate").value;
@@ -718,14 +766,13 @@ $("filterVisitorsBtn").addEventListener("click", async () => {
     await loadVisitorReport();
 });
 
-// All dates
+// ALL DATES
 $("allVisitorsBtn").addEventListener("click", async () => {
     $("visitorStartDate").value = "";
     $("visitorEndDate").value = "";
 
     await loadVisitorReport();
 });
-
 
 // AUTH STATE
 supabaseClient.auth.onAuthStateChange((event, session) => {
