@@ -15,6 +15,43 @@ const supabaseClient = window.supabase.createClient(
     SUPABASE_KEY
 );
 
+// =====================================
+// MIVQO VISITOR TRACKING
+// =====================================
+
+async function trackVisitor() {
+    try {
+        let visitorId = localStorage.getItem("mivqo_visitor_id");
+
+        if (!visitorId) {
+            visitorId = crypto.randomUUID();
+            localStorage.setItem("mivqo_visitor_id", visitorId);
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const productId = params.get("id");
+
+        const { error } = await supabaseClient
+            .from("site_visits")
+            .insert({
+                visitor_id: visitorId,
+                page_path: window.location.pathname,
+                product_id: productId || null
+            });
+
+        if (error) {
+            console.error("Visitor tracking error:", error);
+        }
+
+    } catch (error) {
+        console.error("Visitor tracking failed:", error);
+    }
+}
+
+trackVisitor();
+
+// =====================================
+
 let products = [];
 let selectedCategory = "all";
 
