@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -131,6 +132,78 @@
             color: #777;
         }
 
+        /* VISITOR DASHBOARD */
+        .visitor-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .visitor-stat {
+            background: white;
+            padding: 18px;
+            border: 1px solid #e5eae5;
+            border-radius: 8px;
+        }
+
+        .visitor-stat h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .visitor-stat p {
+            font-size: 27px;
+            font-weight: 800;
+            color: #16834a;
+        }
+
+        .visitor-filters {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: end;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .visitor-filters label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .visitor-filters input {
+            padding: 11px;
+            border: 1px solid #ddd;
+            border-radius: 7px;
+            font: inherit;
+        }
+
+        .visitor-report-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 12px;
+        }
+
+        .visitor-report-table th,
+        .visitor-report-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5eae5;
+            font-size: 13px;
+        }
+
+        .visitor-report-table th {
+            background: #edf4ed;
+        }
+
+        .visitor-table-wrap {
+            overflow-x: auto;
+        }
+
         @media(max-width:600px) {
             .admin-container {
                 padding: 15px;
@@ -139,6 +212,14 @@
 
             .admin-box {
                 padding: 18px;
+            }
+
+            .visitor-filters > div {
+                width: 100%;
+            }
+
+            .visitor-filters input {
+                width: 100%;
             }
         }
     </style>
@@ -197,6 +278,76 @@
                 <button class="admin-btn secondary" id="logoutBtn">
                     Logout
                 </button>
+
+            </div>
+
+
+            <!-- VISITOR DASHBOARD -->
+            <div class="admin-box" id="visitorDashboard">
+
+                <h2>Website Visitor Analytics</h2>
+
+                <p style="font-size:13px;color:#777;">
+                    Monitor your website traffic and product views.
+                </p>
+
+                <div class="visitor-stats">
+
+                    <div class="visitor-stat">
+                        <h3>Total Visits</h3>
+                        <p id="totalVisits">Loading...</p>
+                    </div>
+
+                    <div class="visitor-stat">
+                        <h3>Unique Visitors</h3>
+                        <p id="uniqueVisitors">Loading...</p>
+                    </div>
+
+                    <div class="visitor-stat">
+                        <h3>Today's Visitors</h3>
+                        <p id="todayVisitors">Loading...</p>
+                    </div>
+
+                    <div class="visitor-stat">
+                        <h3>Today's Visits</h3>
+                        <p id="todayVisits">Loading...</p>
+                    </div>
+
+                </div>
+
+                <h3 style="margin-top:25px;">Visitor Reports</h3>
+
+                <div class="visitor-filters">
+
+                    <div>
+                        <label for="visitorStartDate">From Date</label>
+                        <input type="date" id="visitorStartDate">
+                    </div>
+
+                    <div>
+                        <label for="visitorEndDate">To Date</label>
+                        <input type="date" id="visitorEndDate">
+                    </div>
+
+                    <button type="button" class="admin-btn" id="filterVisitorsBtn">
+                        Apply Filter
+                    </button>
+
+                    <button type="button" class="admin-btn secondary" id="allVisitorsBtn">
+                        All Dates
+                    </button>
+
+                </div>
+
+                <div id="visitorReport" style="margin-top:20px;">
+                    Visitor reports will appear here.
+                </div>
+
+                <h3 style="margin-top:30px;">Product-wise Views</h3>
+
+                <div id="productViews" style="margin-top:15px;">
+                    Product views will appear here.
+                </div>
 
             </div>
 
